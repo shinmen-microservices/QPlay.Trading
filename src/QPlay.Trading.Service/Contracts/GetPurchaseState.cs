@@ -2,7 +2,4 @@
 
 namespace QPlay.Trading.Service.Contracts;
 
-public record GetPurchaseState
-(
-    Guid CorrelationId
-);
+public record GetPurchaseState(Guid CorrelationId);

@@ -2,8 +2,4 @@
 
 namespace QPlay.Trading.Service.Models.Dtos;
 
-public record StoreDto
-(
-    IEnumerable<StoreItemDto> Items,
-    decimal UserGil
-);
+public record StoreDto(IEnumerable<StoreItemDto> Items, decimal UserGil);
