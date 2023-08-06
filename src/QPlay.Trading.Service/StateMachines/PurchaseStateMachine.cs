@@ -6,7 +6,6 @@ using QPlay.Trading.Service.Activities;
 using QPlay.Trading.Service.Contracts;
 using QPlay.Trading.Service.SignalR;
 using System;
-using System.Linq;
 
 namespace QPlay.Trading.Service.StateMachines;
 
