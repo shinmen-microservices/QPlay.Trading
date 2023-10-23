@@ -1,7 +1,7 @@
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using QPlay.Trading.Service.StateMachines;
-using System.Threading.Tasks;
 
 namespace QPlay.Trading.Service.SignalR;
 

@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MassTransit.MongoDb" Version="7.3.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.8" />
+    <PackageReference Include="MassTransit.MongoDb" Version="8.1.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.12" />
     <PackageReference Include="QPlay.Catalog.Contracts" Version="1.0.0" />
-    <PackageReference Include="QPlay.Common" Version="1.0.2" />
+    <PackageReference Include="QPlay.Common" Version="1.0.0" />
     <PackageReference Include="QPlay.Identity.Contracts" Version="1.0.0" />
     <PackageReference Include="QPlay.Inventory.Contracts" Version="1.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />

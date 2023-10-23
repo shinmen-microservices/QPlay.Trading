@@ -7,7 +7,8 @@ public static class DtoExtension
 {
     public static PurchaseDto AsDto(this PurchaseState purchaseState)
     {
-        return new(
+        return new
+        (
             purchaseState.UserId,
             purchaseState.ItemId,
             purchaseState.PurchaseTotal,

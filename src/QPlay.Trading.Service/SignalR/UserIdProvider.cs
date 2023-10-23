@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.SignalR;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.SignalR;
 
 namespace QPlay.Trading.Service.SignalR;
 

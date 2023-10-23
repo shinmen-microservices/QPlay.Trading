@@ -1,16 +1,15 @@
-using Automatonymous;
-using GreenPipes;
+using System;
+using System.Threading.Tasks;
+using MassTransit;
 using QPlay.Common.Repositories.Interfaces;
 using QPlay.Trading.Service.Contracts;
 using QPlay.Trading.Service.Exceptions;
 using QPlay.Trading.Service.Models.Entities;
 using QPlay.Trading.Service.StateMachines;
-using System;
-using System.Threading.Tasks;
 
 namespace QPlay.Trading.Service.Activities;
 
-public class CalculatePurchaseTotalActivity : Activity<PurchaseState, PurchaseRequested>
+public class CalculatePurchaseTotalActivity : IStateMachineActivity<PurchaseState, PurchaseRequested>
 {
     private readonly IRepository<CatalogItem> repository;
 
@@ -26,24 +25,24 @@ public class CalculatePurchaseTotalActivity : Activity<PurchaseState, PurchaseRe
 
     public async Task Execute(
         BehaviorContext<PurchaseState, PurchaseRequested> context,
-        Behavior<PurchaseState, PurchaseRequested> next
+        IBehavior<PurchaseState, PurchaseRequested> next
     )
     {
-        PurchaseRequested message = context.Data;
+        PurchaseRequested message = context.Message;
 
         CatalogItem catalogItem =
             await repository.GetAsync(message.ItemId)
             ?? throw new UnknownItemException(message.ItemId);
 
-        context.Instance.PurchaseTotal = catalogItem.Price * message.Quantity;
-        context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+        context.Saga.PurchaseTotal = catalogItem.Price * message.Quantity;
+        context.Saga.LastUpdated = DateTimeOffset.UtcNow;
 
         await next.Execute(context).ConfigureAwait(false);
     }
 
     public Task Faulted<TException>(
         BehaviorExceptionContext<PurchaseState, PurchaseRequested, TException> context,
-        Behavior<PurchaseState, PurchaseRequested> next
+        IBehavior<PurchaseState, PurchaseRequested> next
     )
         where TException : Exception
     {

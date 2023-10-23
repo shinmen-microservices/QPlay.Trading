@@ -2,7 +2,8 @@
 
 namespace QPlay.Trading.Service.Models.Dtos;
 
-public record StoreItemDto(
+public record StoreItemDto
+(
     Guid Id,
     string Name,
     string Description,

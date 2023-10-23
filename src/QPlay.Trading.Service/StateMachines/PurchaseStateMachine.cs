@@ -1,11 +1,10 @@
-using Automatonymous;
+using System;
 using MassTransit;
 using QPlay.Identity.Contracts;
 using QPlay.Inventory.Contracts;
 using QPlay.Trading.Service.Activities;
 using QPlay.Trading.Service.Contracts;
 using QPlay.Trading.Service.SignalR;
-using System;
 
 namespace QPlay.Trading.Service.StateMachines;
 
@@ -61,20 +60,20 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
             When(PurchaseRequested)
                 .Then(context =>
                 {
-                    context.Instance.UserId = context.Data.UserId;
-                    context.Instance.ItemId = context.Data.ItemId;
-                    context.Instance.Quantity = context.Data.Quantity;
-                    context.Instance.Received = DateTimeOffset.UtcNow;
-                    context.Instance.LastUpdated = context.Instance.Received;
+                    context.Saga.UserId = context.Message.UserId;
+                    context.Saga.ItemId = context.Message.ItemId;
+                    context.Saga.Quantity = context.Message.Quantity;
+                    context.Saga.Received = DateTimeOffset.UtcNow;
+                    context.Saga.LastUpdated = context.Saga.Received;
                 })
                 .Activity(x => x.OfType<CalculatePurchaseTotalActivity>())
                 .Send(
                     context =>
                         new GrantItems(
-                            context.Instance.UserId,
-                            context.Instance.ItemId,
-                            context.Instance.Quantity,
-                            context.Instance.CorrelationId
+                            context.Saga.UserId,
+                            context.Saga.ItemId,
+                            context.Saga.Quantity,
+                            context.Saga.CorrelationId
                         )
                 )
                 .TransitionTo(Accepted)
@@ -82,18 +81,18 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
                     ex =>
                         ex.Then(context =>
                             {
-                                context.Instance.ErrorMessage = context.Exception.Message;
-                                context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                                context.Saga.ErrorMessage = context.Exception.Message;
+                                context.Saga.LastUpdated = DateTimeOffset.UtcNow;
                             })
                             .TransitionTo(Faulted)
-                            .ThenAsync(async context => await hub.SendStatusAsync(context.Instance))
+                            .ThenAsync(async context => await hub.SendStatusAsync(context.Saga))
                 )
         );
     }
 
     private void ConfigureAny()
     {
-        DuringAny(When(GetPurchaseState).Respond(context => context.Instance));
+        DuringAny(When(GetPurchaseState).Respond(context => context.Saga));
     }
 
     private void ConfigureCompleted()
@@ -112,24 +111,24 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
             Accepted,
             Ignore(PurchaseRequested),
             When(InventoryItemsGranted)
-                .Then(context => context.Instance.LastUpdated = DateTimeOffset.UtcNow)
+                .Then(context => context.Saga.LastUpdated = DateTimeOffset.UtcNow)
                 .Send(
                     context =>
                         new DebitGil(
-                            context.Instance.UserId,
-                            context.Instance.PurchaseTotal.Value,
-                            context.Instance.CorrelationId
+                            context.Saga.UserId,
+                            context.Saga.PurchaseTotal.Value,
+                            context.Saga.CorrelationId
                         )
                 )
                 .TransitionTo(ItemsGranted),
             When(GrantItemsFaulted)
                 .Then(context =>
                 {
-                    context.Instance.ErrorMessage = context.Data.Exceptions[0].Message;
-                    context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
+                    context.Saga.LastUpdated = DateTimeOffset.UtcNow;
                 })
                 .TransitionTo(Faulted)
-                .ThenAsync(async context => await hub.SendStatusAsync(context.Instance))
+                .ThenAsync(async context => await hub.SendStatusAsync(context.Saga))
         );
     }
 
@@ -140,26 +139,26 @@ public class PurchaseStateMachine : MassTransitStateMachine<PurchaseState>
             Ignore(PurchaseRequested),
             Ignore(InventoryItemsGranted),
             When(GilDebited)
-                .Then(context => context.Instance.LastUpdated = DateTimeOffset.UtcNow)
+                .Then(context => context.Saga.LastUpdated = DateTimeOffset.UtcNow)
                 .TransitionTo(Completed)
-                .ThenAsync(async context => await hub.SendStatusAsync(context.Instance)),
+                .ThenAsync(async context => await hub.SendStatusAsync(context.Saga)),
             When(DebitGilFaulted)
                 .Send(
                     context =>
                         new SubtractItems(
-                            context.Instance.UserId,
-                            context.Instance.ItemId,
-                            context.Instance.Quantity,
-                            context.Instance.CorrelationId
+                            context.Saga.UserId,
+                            context.Saga.ItemId,
+                            context.Saga.Quantity,
+                            context.Saga.CorrelationId
                         )
                 )
                 .Then(context =>
                 {
-                    context.Instance.ErrorMessage = context.Data.Exceptions[0].Message;
-                    context.Instance.LastUpdated = DateTimeOffset.UtcNow;
+                    context.Saga.ErrorMessage = context.Message.Exceptions[0].Message;
+                    context.Saga.LastUpdated = DateTimeOffset.UtcNow;
                 })
                 .TransitionTo(Faulted)
-                .ThenAsync(async context => await hub.SendStatusAsync(context.Instance))
+                .ThenAsync(async context => await hub.SendStatusAsync(context.Saga))
         );
     }
 

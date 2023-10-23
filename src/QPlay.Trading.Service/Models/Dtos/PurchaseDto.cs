@@ -2,7 +2,8 @@
 
 namespace QPlay.Trading.Service.Models.Dtos;
 
-public record PurchaseDto(
+public record PurchaseDto
+(
     Guid UserId,
     Guid ItemId,
     decimal? PurchaseTotal,
